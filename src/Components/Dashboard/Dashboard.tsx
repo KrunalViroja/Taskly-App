@@ -17,7 +17,7 @@ import {
   FaCopy,
 } from "react-icons/fa";
 import "./dashboard.css";
-import { ClipLoader } from "react-spinners";
+import ClipLoader from "react-spinners/ClipLoader";
 import TaskDetailsModal from "../TaskDetailModal/TaskDetailsModal";
 import { message } from "antd";
 
@@ -225,14 +225,6 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="loader-container">
-        <ClipLoader size={50} color={"#3b82f6"} loading={loading} />
-      </div>
-    );
-  }
-
   if (error) return <div>Error: {error}</div>;
   return (
     <>
@@ -436,6 +428,11 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
               task={selectedTask}
             />
           )}
+          <div className={`overlay ${loading ? "active" : ""}`}>
+            <div className="loader-container">
+              <ClipLoader size={50} color={"#3b82f6"} loading={loading} />
+            </div>
+          </div>
         </>
       ) : (
         <Login />

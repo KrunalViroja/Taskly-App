@@ -132,6 +132,7 @@ nav.close ~ .dashboard .top {
 .dashboard-container {
   margin-left: auto;
   transition: width 0.3s ease;
+  /* position: relative; */
 }
 
 .dash-content .activity .activity-data {
@@ -571,18 +572,30 @@ ul {
   background-color: #17a2b8;
 }
 
-.loader-container {
-  position: fixed;
+.overlay {
+  position: fixed; 
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
+  height: 100vh; 
+  background-color: rgba(0, 0, 0, 0.3); 
+  display: none; 
+  justify-content: center;
+  align-items: center;
+  z-index: 999; 
+}
+
+.overlay.active {
+  display: flex; 
+}
+
+.loader-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  z-index: 999;
 }
+
+
 
 /* Extra Small Devices (Portrait Phones, Less than 576px) */
 @media (max-width: 575.98px) {

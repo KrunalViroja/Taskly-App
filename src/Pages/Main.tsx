@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import SideBar from "../Components/SideBar/Sidebar";
-import Dashboard from "../Components/Dashboard/Dashboard";
+import React, { useState, lazy, Suspense } from "react";
 import "./main.css";
+
+const SideBar = lazy(() => import("../Components/SideBar/Sidebar"));
+const Dashboard = lazy(() => import("../Components/Dashboard/Dashboard"));
 
 const Main: React.FC = () => {
   const [isSidebarClosed, setIsSidebarClosed] = useState<boolean>(false);
@@ -11,11 +12,13 @@ const Main: React.FC = () => {
   };
 
   return (
-    <div
-      className={`main-container ${isSidebarClosed ? "sidebar-closed" : ""}`}
-    >
-      <SideBar isClosed={isSidebarClosed} onToggle={handleSidebarToggle} />
-      <Dashboard isSidebarClosed={isSidebarClosed} />
+    <div className={`main-container ${isSidebarClosed ? "sidebar-closed" : ""}`}>
+      <Suspense fallback={<div></div>}>
+        <SideBar isClosed={isSidebarClosed} onToggle={handleSidebarToggle} />
+      </Suspense>
+      <Suspense fallback={<div></div>}>
+        <Dashboard isSidebarClosed={isSidebarClosed} />
+      </Suspense>
     </div>
   );
 };

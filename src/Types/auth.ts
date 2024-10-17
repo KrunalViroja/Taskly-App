@@ -3,4 +3,3 @@ export interface AuthContextType {
     logout: () => void;
     isAuthenticated: boolean;
   }
-  
