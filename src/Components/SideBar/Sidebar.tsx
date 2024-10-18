@@ -14,7 +14,9 @@ const SideBar: FC<SidebarProps> = ({ isClosed, onToggle }) => {
     const savedMode = localStorage.getItem("mode");
     return savedMode === "dark";
   });
-
+  const loginData = localStorage.getItem("login");
+  const parsedLogin = loginData ? JSON.parse(loginData) : null;
+  const UserName = parsedLogin?.user?.name || "";
   useEffect(() => {
     const auth = localStorage.getItem("login");
     if (!auth) {
@@ -37,8 +39,7 @@ const SideBar: FC<SidebarProps> = ({ isClosed, onToggle }) => {
   };
 
   const logout = (): void => {
-    // localStorage.removeItem("token");
-    localStorage.removeItem("login");
+    localStorage.clear();
     message.success("Logout from dashboard");
     navigate("/");
   };
@@ -47,11 +48,8 @@ const SideBar: FC<SidebarProps> = ({ isClosed, onToggle }) => {
     <div className={`sidebar-container ${isClosed ? "closed" : ""}`}>
       <nav>
         <div className="top">
-          <h1 className="sidebar-title-text">Taskly</h1>
-          <i
-            className="uil uil-bars sidebar-toggle"
-            onClick={onToggle} 
-          ></i>
+          <h1 className="sidebar-title-text">{UserName}</h1>
+          <i className="uil uil-bars sidebar-toggle" onClick={onToggle}></i>
         </div>
         <div className="sidebar-title"></div>
 
@@ -63,7 +61,6 @@ const SideBar: FC<SidebarProps> = ({ isClosed, onToggle }) => {
                 <span className="link-name">Dashboard</span>
               </Link>
             </li>
-            
           </ul>
 
           <ul className="logout-mode">
@@ -73,13 +70,11 @@ const SideBar: FC<SidebarProps> = ({ isClosed, onToggle }) => {
                 <span className="link-name">Logout</span>
               </div>
             </li>
+            <br />
             <li>
               <div className="mode-toggle">
-                <span>
-                  <i className="uil uil-moon"></i>
-                  <span className="link-name">Dark Mode</span>
-                </span>
-                <div className="mode-toggle" onClick={toggleDarkMode}>
+                <span className="link-name">Dark Mode</span>
+                <div className="mode-toggle-switch" onClick={toggleDarkMode}>
                   <span className="switch"></span>
                 </div>
               </div>

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFormik } from "formik";
 import "./addtaskmodal.css";
 import React from "react";
 import { useAddTask } from "../../Context/AddTaskContext";
-import { AddTaskModalProps } from "../../Types/Addtask";
+import { AddTaskModalProps } from "../../Types/AddTask";
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
   const { addTask, fetchUsers, users } = useAddTask();
@@ -11,7 +11,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
     { id: string; name: string }[]
   >([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
-
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const [hasFocusedInitially, setHasFocusedInitially] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -110,14 +111,20 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
       });
       formik.resetForm();
       onClose();
+      setHasFocusedInitially(false);
+
     },
   });
 
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
+      if (titleInputRef.current && !hasFocusedInitially) {
+        titleInputRef.current.focus();
+        setHasFocusedInitially(true);
+      }
     }
-  }, [isOpen, fetchUsers]);
+  }, [isOpen, fetchUsers,hasFocusedInitially]);
 
   useEffect(() => {
     if (searchTerm === "") {
@@ -138,11 +145,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
   const handleAssigneeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedUserId = e.target.value;
     formik.setFieldValue("assignedTo", selectedUserId);
-  };
-
-  const handleClose = () => {
-    onClose();
-    window.location.reload();
   };
 
   if (!isOpen) return null;
@@ -170,6 +172,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose }) => {
                       type="text"
                       className="form-control"
                       id="title"
+                      ref={titleInputRef}
                       {...formik.getFieldProps("title")}
                     />
                   </div>

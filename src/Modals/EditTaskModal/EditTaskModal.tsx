@@ -1,7 +1,8 @@
-import React, { useState, useEffect, FC } from "react";
+import React, { useState, useEffect, useRef, FC } from "react";
 import { useEditTask } from "../../Context/EditTaskContext";
 import { useAddTask } from "../../Context/AddTaskContext";
-import { EditTaskModalProps, EditTask } from "../../Types/Edittask";
+import { Task } from "../../Types/Task";
+import { EditTaskModalProps } from "../../Types/EditTask";
 import { useFormik } from "formik";
 import "./edittaskmodal.css";
 
@@ -15,6 +16,8 @@ const EditTaskModal: FC<EditTaskModalProps> = ({
   const { fetchUsers, users } = useAddTask();
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState(users);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const [hasFocusedInitially, setHasFocusedInitially] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -107,9 +110,8 @@ const EditTaskModal: FC<EditTaskModalProps> = ({
       return errors;
     },
     onSubmit: async (values) => {
-      const updatedTask: Partial<EditTask> = {
+      const updatedTask: Partial<Task> = {
         ...values,
-        //  createdBy: userId,
       };
 
       const success = await editTask(task?.id || "", updatedTask);
@@ -120,9 +122,10 @@ const EditTaskModal: FC<EditTaskModalProps> = ({
     },
   });
 
+  const formikRef = useRef(formik);
   useEffect(() => {
     if (task) {
-      formik.setValues({
+      formikRef.current.setValues({
         title: task.title.trim(),
         description: task.description.trim(),
         assignedTo: task.assignedTo,
@@ -135,8 +138,12 @@ const EditTaskModal: FC<EditTaskModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
+      if (titleInputRef.current && !hasFocusedInitially) {
+        titleInputRef.current.focus();
+        setHasFocusedInitially(true);
+      }
     }
-  }, [isOpen, fetchUsers]);
+  }, [isOpen, fetchUsers, hasFocusedInitially]);
 
   useEffect(() => {
     setFilteredUsers(
@@ -147,6 +154,7 @@ const EditTaskModal: FC<EditTaskModalProps> = ({
         : users
     );
   }, [searchTerm, users]);
+  console.log("task----", task);
 
   return isOpen ? (
     <div className="modal-overlay">
@@ -159,6 +167,7 @@ const EditTaskModal: FC<EditTaskModalProps> = ({
               type="text"
               {...formik.getFieldProps("title")}
               placeholder="Task Title"
+              ref={titleInputRef}
             />
             {formik.touched.title && formik.errors.title && (
               <div className="error">{formik.errors.title}</div>
@@ -184,18 +193,25 @@ const EditTaskModal: FC<EditTaskModalProps> = ({
                 placeholder="Search assignee..."
               />
               <select
-                value={formik.values.assignedTo}
+                // value={formik.values.assignedTo}
                 onChange={(e) =>
                   formik.setFieldValue("assignedTo", e.target.value)
                 }
                 className="form-control mt-2"
               >
-                <option value="">Select Assignee</option>
-                {filteredUsers.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
+                <option value="">
+                  {task && task ? task.assignedTo : "Select Assignee"}
+                </option>
+                {/* <option value="">Select Assignee</option> */}
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No users available</option>
+                )}
               </select>
             </div>
             {formik.touched.assignedTo && formik.errors.assignedTo && (

@@ -132,7 +132,6 @@ nav.close ~ .dashboard .top {
 .dashboard-container {
   margin-left: auto;
   transition: width 0.3s ease;
-  /* position: relative; */
 }
 
 .dash-content .activity .activity-data {
@@ -194,7 +193,12 @@ ul {
   align-items: stretch;
   width: 100%;
 }
-
+body.dark .pages {
+  color: #ccc;
+}
+.sidebar-closed .card {
+  max-width: 350px;
+}
 /* media querys */
 @media (max-width: 1000px) {
   nav {
@@ -573,20 +577,20 @@ ul {
 }
 
 .overlay {
-  position: fixed; 
+  position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh; 
-  background-color: rgba(0, 0, 0, 0.3); 
-  display: none; 
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: none;
   justify-content: center;
   align-items: center;
-  z-index: 999; 
+  z-index: 999;
 }
 
 .overlay.active {
-  display: flex; 
+  display: flex;
 }
 
 .loader-container {
@@ -594,8 +598,6 @@ ul {
   justify-content: center;
   align-items: center;
 }
-
-
 
 /* Extra Small Devices (Portrait Phones, Less than 576px) */
 @media (max-width: 575.98px) {

@@ -1,6 +1,6 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../Context/AuthContext"; 
+import { useAuth } from "../../Context/AuthContext";
 import { message } from "antd";
 import "./login.css";
 
@@ -9,7 +9,9 @@ const Login = () => {
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { login } = useAuth(); 
+  const { login } = useAuth();
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const [hasFocusedInitially, setHasFocusedInitially] = useState(false);
 
   useEffect(() => {
     const loginData = localStorage.getItem("login");
@@ -19,7 +21,11 @@ const Login = () => {
     if (token) {
       navigate("/dashboard");
     }
-  }, [navigate]);
+    if (titleInputRef.current && !hasFocusedInitially) {
+      titleInputRef.current.focus();
+      setHasFocusedInitially(true);
+    }
+  }, [navigate, hasFocusedInitially]);
 
   const handleLogin = (): void => {
     if (!email.trim() || !password.trim()) {
@@ -43,6 +49,7 @@ const Login = () => {
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              ref={titleInputRef}
               required
             />
             <label className="label" htmlFor="email" id="label-email">
@@ -72,7 +79,9 @@ const Login = () => {
 
           <div className="showErrors">
             {error && !password.trim() && (
-              <span style={{ color: "red" }}>Please enter a valid password</span>
+              <span style={{ color: "red" }}>
+                Please enter a valid password
+              </span>
             )}
           </div>
 

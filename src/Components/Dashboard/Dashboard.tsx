@@ -2,9 +2,9 @@ import React, { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTaskContext } from "../../Context/TaskContext";
 import Login from "../Login/Login";
-import AddTaskModal from "../AddTaskModal/AddTaskModal";
-import { EditTask } from "../../Types/Edittask";
-import EditTaskModal from "../EditTaskModal/EditTaskModal";
+import AddTaskModal from "../../Modals/AddTaskModal/AddTaskModal";
+import { Task } from "../../Types/Task";
+import EditTaskModal from "../../Modals/EditTaskModal/EditTaskModal";
 import {
   FaUsers,
   FaTasks,
@@ -17,8 +17,8 @@ import {
   FaCopy,
 } from "react-icons/fa";
 import "./dashboard.css";
-import ClipLoader from "react-spinners/ClipLoader";
-import TaskDetailsModal from "../TaskDetailModal/TaskDetailsModal";
+import { ClipLoader } from "react-spinners";
+import TaskDetailsModal from "../../Modals/TaskDetailModal/TaskDetailsModal";
 import { message } from "antd";
 
 interface DashboardProps {
@@ -42,7 +42,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
   } = useTaskContext();
   const [isaddModalOpen, setIsaddModalOpen] = useState(false);
   const [iseditModalOpen, setIseditModalOpen] = useState(false);
-  const [currentTask, setCurrentTask] = useState<EditTask | null>(null);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [displayedTasks, setDisplayedTasks] = useState(tasks);
   const tasksPerPage = 5;
@@ -106,8 +106,58 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
   const parsedLogin = loginData ? JSON.parse(loginData) : null;
   const userId = parsedLogin?.user?.id || "";
 
+  const handleFetchTodayTasks = async () => {
+    setDisplayedTasks(todayTasks);
+    setNoTasksMessage(
+      todayTasks.length === 0 ? "No tasks found for today's tasks." : null
+    );
+    setCurrentPage(1);
+  };
+
+  const handleFetchOverdueTasks = async () => {
+    setDisplayedTasks(overdueTasks);
+    setNoTasksMessage(
+      overdueTasks.length === 0 ? "No overdue tasks found." : null
+    );
+    setCurrentPage(1);
+  };
+
+  const handleFetchCompletedTasks = async () => {
+    setDisplayedTasks(completedTasks);
+    setNoTasksMessage(
+      completedTasks.length === 0 ? "No completed tasks found." : null
+    );
+    setCurrentPage(1);
+  };
+
+  const handleFetchCreatedTasks = async () => {
+    setDisplayedTasks(createdTasks);
+    setNoTasksMessage(
+      createdTasks.length === 0 ? "No tasks found that you created." : null
+    );
+    setCurrentPage(1);
+  };
   const handleCardClick = (cardType: string) => {
     setSelectedCard(cardType);
+    if (cardType === "assigned") {
+      setDisplayLabel("Assigned By");
+      setDisplayedTasks(tasks);
+      setNoTasksMessage(
+        tasks.length === 0 ? "No tasks found for assigned tasks." : null
+      );
+    } else if (cardType === "today") {
+      setDisplayLabel("Assigned By");
+      handleFetchTodayTasks();
+    } else if (cardType === "overdue") {
+      setDisplayLabel("Assigned By");
+      handleFetchOverdueTasks();
+    } else if (cardType === "completed") {
+      setDisplayLabel("Assigned By");
+      handleFetchCompletedTasks();
+    } else if (cardType === "created") {
+      setDisplayLabel("Assigned To");
+      handleFetchCreatedTasks();
+    }
     setCurrentPage(1);
   };
 
@@ -124,7 +174,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     setIsaddModalOpen(true);
   };
 
-  const handleEditOpenModal = (task: EditTask, taskId: string) => {
+  const handleEditOpenModal = (task: Task, taskId: string) => {
     const taskToDuplicate = displayedTasks.find((t) => t.id === taskId);
     if (taskToDuplicate && taskToDuplicate.createdBy.id === userId) {
       // if (task.createdBy.id === userId) {
@@ -330,7 +380,13 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                               <td>{task.title}</td>
                               <td>{task.estimatedHours}</td>
                               <td>{task.dueDate}</td>
-                              <td>{task?.createdBy?.name}</td>
+                              {/* <td>{task?.createdBy?.name}</td> */}
+                              <td>
+                                {" "}
+                                {selectedCard === "created"
+                                  ? task.assignedTo
+                                  : task.createdBy?.name}
+                              </td>
                               <td>
                                 <select
                                   value={task.status[0]}
@@ -390,7 +446,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                     >
                       Prev
                     </button>
-                    <span>
+                    <span className="pages">
                       {currentPage} / {totalPages}
                     </span>
                     <button

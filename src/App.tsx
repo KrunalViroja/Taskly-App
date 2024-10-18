@@ -18,7 +18,7 @@ function App() {
               <Suspense fallback={<div></div>}>
                 <Routes>
                   <Route path="/" element={<Login />} />
-                  <Route path="dashboard" element={<Main />} />
+                  <Route path="/dashboard" element={<Main />} />
                 </Routes>
               </Suspense>
             </EditTaskProvider>

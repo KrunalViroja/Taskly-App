@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
-import { AddTask, User, AddTaskContextType } from "../Types/Addtask";
+import {User, AddTaskContextType } from "../Types/AddTask";
+import { Task } from "../Types/Task";
 import { message } from "antd";
 import baseURL from "../config";
 
@@ -38,7 +39,7 @@ export const AddTaskProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const addTask = async (task: AddTask) => {
+  const addTask = async (task: Partial<Task>) => {
     try {
       const response = await axios.post(`${baseURL}api/task`, task, {
         headers: {

@@ -12,7 +12,9 @@ const Main: React.FC = () => {
   };
 
   return (
-    <div className={`main-container ${isSidebarClosed ? "sidebar-closed" : ""}`}>
+    <div
+      className={`main-container ${isSidebarClosed ? "sidebar-closed" : ""}`}
+    >
       <Suspense fallback={<div></div>}>
         <SideBar isClosed={isSidebarClosed} onToggle={handleSidebarToggle} />
       </Suspense>
