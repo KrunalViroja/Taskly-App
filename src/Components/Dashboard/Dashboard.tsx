@@ -15,11 +15,14 @@ import {
   FaTrash,
   FaInfoCircle,
   FaCopy,
+  FaSortUp,
+  FaSortDown,
 } from "react-icons/fa";
 import "./dashboard.css";
 import { ClipLoader } from "react-spinners";
 import TaskDetailsModal from "../../Modals/TaskDetailModal/TaskDetailsModal";
 import { message } from "antd";
+import ReactPaginate from "react-paginate";
 
 interface DashboardProps {
   isSidebarClosed: boolean;
@@ -36,9 +39,15 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     todayTasks,
     overdueTasks,
     completedTasks,
+    totalAssignTask,
+    totalCreatedTask,
+    totalCompletedTask,
+    totalOverdueTask,
+    totalTodayTask,
     duplicateTask,
     updateTaskStatus,
     deleteTask,
+    handleSort,
   } = useTaskContext();
   const [isaddModalOpen, setIsaddModalOpen] = useState(false);
   const [iseditModalOpen, setIseditModalOpen] = useState(false);
@@ -137,6 +146,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     );
     setCurrentPage(1);
   };
+
   const handleCardClick = (cardType: string) => {
     setSelectedCard(cardType);
     if (cardType === "assigned") {
@@ -177,7 +187,6 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
   const handleEditOpenModal = (task: Task, taskId: string) => {
     const taskToDuplicate = displayedTasks.find((t) => t.id === taskId);
     if (taskToDuplicate && taskToDuplicate.createdBy.id === userId) {
-      // if (task.createdBy.id === userId) {
       setCurrentTask(task);
       setIseditModalOpen(true);
     } else {
@@ -192,7 +201,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
 
   const handleeditCloseModal = () => {
     setIseditModalOpen(false);
-    setCurrentTask(null); // Clear current task after closing modal
+    setCurrentTask(null);
   };
 
   const handleDuplicateTask = async (taskId: string) => {
@@ -220,12 +229,8 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     startIndex + tasksPerPage
   );
 
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  const handlePageClick = (data: { selected: number }) => {
+    setCurrentPage(data.selected + 1); // Pages are 0-based, so add 1
   };
 
   const handleDeleteTask = async (taskId: string) => {
@@ -275,7 +280,23 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     }
   };
 
-  if (error) return <div>Error: {error}</div>;
+  const formatDate = (dateString: string): string => {
+    const dateParts = dateString.split("-");
+    return `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+  };
+
+  type SortState = {
+    estimatedHours: "ASC" | "DESC";
+    dueDate: "ASC" | "DESC";
+    createdAt: "ASC" | "DESC";
+  };
+
+  const [sortState, setSortState] = useState<SortState>({
+    estimatedHours: "ASC",
+    dueDate: "ASC",
+    createdAt: "ASC",
+  });
+
   return (
     <>
       {auth ? (
@@ -301,7 +322,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                     >
                       <FaUsers className="card-icon" />
                       <span className="text">Tasks assigned to you</span>
-                      <span className="number">{tasks.length}</span>
+                      <span className="number">{totalAssignTask}</span>
                     </div>
                     <div
                       className={`card ${
@@ -311,7 +332,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                     >
                       <FaTasks className="card-icon" />
                       <span className="text">Today's tasks</span>
-                      <span className="number">{todayTasks.length}</span>
+                      <span className="number">{totalTodayTask}</span>
                     </div>
                     <div
                       className={`card ${
@@ -321,7 +342,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                     >
                       <FaCalendarTimes className="card-icon" />
                       <span className="text">Task Overdue</span>
-                      <span className="number">{overdueTasks.length}</span>
+                      <span className="number">{totalOverdueTask}</span>
                     </div>
                     <div
                       className={`card ${
@@ -331,7 +352,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                     >
                       <FaCheckCircle className="card-icon" />
                       <span className="text">Task Completed</span>
-                      <span className="number">{completedTasks.length}</span>
+                      <span className="number">{totalCompletedTask}</span>
                     </div>
                     <div
                       className={`card ${
@@ -341,7 +362,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                     >
                       <FaClipboardList className="card-icon" />
                       <span className="text">Task Created by you</span>
-                      <span className="number">{createdTasks.length}</span>
+                      <span className="number">{totalCreatedTask}</span>
                     </div>
                   </div>
                 </div>
@@ -360,9 +381,27 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                       <thead>
                         <tr>
                           <th>Task Name</th>
-                          <th>Estimated Hours</th>
-                          <th>Due On</th>
-                          <th>{displayLabel}</th>
+                          <th
+                            onClick={() => handleSort("estimatedHours")}
+                            className="sortable-header"
+                          >
+                            Estimated Hours
+                            {sortState["estimatedHours"] === "ASC" ? "▲" : "▼"}
+                          </th>
+                          <th
+                            onClick={() => handleSort("dueDate")}
+                            className="sortable-header"
+                          >
+                            Due On {sortState["dueDate"] === "ASC" ? "▲" : "▼"}
+                          </th>
+                          <th
+                            onClick={() => handleSort("createdAt")}
+                            className="sortable-header"
+                          >
+                            {displayLabel}
+                            {sortState["createdAt"] === "ASC" ? "▲" : "▼"}
+                          </th>
+
                           <th>Status</th>
                           <th>Actions</th>
                         </tr>
@@ -379,10 +418,8 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                             <tr key={task.id}>
                               <td>{task.title}</td>
                               <td>{task.estimatedHours}</td>
-                              <td>{task.dueDate}</td>
-                              {/* <td>{task?.createdBy?.name}</td> */}
+                              <td>{formatDate(task.dueDate)}</td>
                               <td>
-                                {" "}
                                 {selectedCard === "created"
                                   ? task.assignedTo
                                   : task.createdBy?.name}
@@ -439,23 +476,21 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                       </tbody>
                     </table>
                   </div>
-                  <div className="pagination">
-                    <button
-                      onClick={handlePrevPage}
-                      disabled={currentPage === 1}
-                    >
-                      Prev
-                    </button>
-                    <span className="pages">
-                      {currentPage} / {totalPages}
-                    </span>
-                    <button
-                      onClick={handleNextPage}
-                      disabled={currentPage === totalPages}
-                    >
-                      Next
-                    </button>
-                  </div>
+                  <ReactPaginate
+                    previousLabel={"Previous"}
+                    nextLabel={"Next"}
+                    breakLabel={"..."}
+                    pageCount={totalPages} // Number of total pages
+                    marginPagesDisplayed={2}
+                    pageRangeDisplayed={3}
+                    onPageChange={handlePageClick}
+                    containerClassName={"pagination"}
+                    activeClassName={"active"}
+                    pageLinkClassName={"page-link"}
+                    previousLinkClassName={"prev-link"}
+                    nextLinkClassName={"next-link"}
+                    breakLinkClassName={"break-link"}
+                  />
                 </div>
               </div>
             </section>
