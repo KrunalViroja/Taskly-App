@@ -57,8 +57,11 @@ export interface TaskContextType {
   totalTodayTask: number;
   currentPage: number;
   totalPages: number;
-  handlePageChange: (page: number) => void;
+  // handlePageChange: (page: number) => void;
   handleSort: (columnvalue: string) => void;
-  fetchTasks: (page: number) => void;
-
+  fetchTasks: () => void;
+  // setPageNumber: (pageNumber: number) => void;
+  // pageCount: number;
+  handlePageClick: any;
+  // combinedSort:string
 }

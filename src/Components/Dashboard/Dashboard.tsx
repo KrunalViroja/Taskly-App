@@ -15,8 +15,6 @@ import {
   FaTrash,
   FaInfoCircle,
   FaCopy,
-  FaSortUp,
-  FaSortDown,
 } from "react-icons/fa";
 import "./dashboard.css";
 import { ClipLoader } from "react-spinners";
@@ -34,7 +32,6 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
   const {
     tasks,
     loading,
-    error,
     createdTasks,
     todayTasks,
     overdueTasks,
@@ -48,6 +45,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     updateTaskStatus,
     deleteTask,
     handleSort,
+    handlePageClick,
   } = useTaskContext();
   const [isaddModalOpen, setIsaddModalOpen] = useState(false);
   const [iseditModalOpen, setIseditModalOpen] = useState(false);
@@ -59,7 +57,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
   const [selectedCard, setSelectedCard] = useState<string>("assigned");
   const [displayLabel, setDisplayLabel] = useState<string>("Assigned By");
   const [noTasksMessage, setNoTasksMessage] = useState<string | null>(null);
-
+  const [count, setCount] = useState<number>(2);
   useEffect(() => {
     if (!auth) {
       navigate("/");
@@ -67,7 +65,6 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
   }, [auth, navigate]);
 
   useEffect(() => {
-    // Load tasks according to selected card when tasks change
     switch (selectedCard) {
       case "assigned":
         setDisplayedTasks(tasks);
@@ -146,7 +143,6 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     );
     setCurrentPage(1);
   };
-
   const handleCardClick = (cardType: string) => {
     setSelectedCard(cardType);
     if (cardType === "assigned") {
@@ -155,18 +151,23 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
       setNoTasksMessage(
         tasks.length === 0 ? "No tasks found for assigned tasks." : null
       );
+      setCount(totalAssignTask / tasksPerPage);
     } else if (cardType === "today") {
       setDisplayLabel("Assigned By");
       handleFetchTodayTasks();
+      setCount(totalTodayTask / tasksPerPage);
     } else if (cardType === "overdue") {
       setDisplayLabel("Assigned By");
       handleFetchOverdueTasks();
+      setCount(totalOverdueTask / tasksPerPage);
     } else if (cardType === "completed") {
       setDisplayLabel("Assigned By");
       handleFetchCompletedTasks();
+      setCount(totalCompletedTask / tasksPerPage);
     } else if (cardType === "created") {
       setDisplayLabel("Assigned To");
       handleFetchCreatedTasks();
+      setCount(totalCreatedTask / tasksPerPage);
     }
     setCurrentPage(1);
   };
@@ -187,6 +188,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
   const handleEditOpenModal = (task: Task, taskId: string) => {
     const taskToDuplicate = displayedTasks.find((t) => t.id === taskId);
     if (taskToDuplicate && taskToDuplicate.createdBy.id === userId) {
+      // if (task.createdBy.id === userId) {
       setCurrentTask(task);
       setIseditModalOpen(true);
     } else {
@@ -228,10 +230,6 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     startIndex,
     startIndex + tasksPerPage
   );
-
-  const handlePageClick = (data: { selected: number }) => {
-    setCurrentPage(data.selected + 1); // Pages are 0-based, so add 1
-  };
 
   const handleDeleteTask = async (taskId: string) => {
     const taskToDelete = displayedTasks.find((t) => t.id === taskId);
@@ -279,7 +277,6 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
         setDisplayedTasks(tasks);
     }
   };
-
   const formatDate = (dateString: string): string => {
     const dateParts = dateString.split("-");
     return `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
@@ -297,6 +294,15 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
     createdAt: "ASC",
   });
 
+  const handleColumnSort = (columnValue: keyof SortState) => {
+    const newOrder = sortState[columnValue] === "ASC" ? "DESC" : "ASC";
+    setSortState((prevState) => ({
+      ...prevState,
+      [columnValue]: newOrder,
+    }));
+
+    handleSort(columnValue);
+  };
   return (
     <>
       {auth ? (
@@ -382,26 +388,25 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                         <tr>
                           <th>Task Name</th>
                           <th
-                            onClick={() => handleSort("estimatedHours")}
+                            onClick={() => handleColumnSort("estimatedHours")}
                             className="sortable-header"
                           >
-                            Estimated Hours
+                            Estimated Hours{" "}
                             {sortState["estimatedHours"] === "ASC" ? "▲" : "▼"}
                           </th>
                           <th
-                            onClick={() => handleSort("dueDate")}
+                            onClick={() => handleColumnSort("dueDate")}
                             className="sortable-header"
                           >
                             Due On {sortState["dueDate"] === "ASC" ? "▲" : "▼"}
                           </th>
                           <th
-                            onClick={() => handleSort("createdAt")}
+                            onClick={() => handleColumnSort("createdAt")}
                             className="sortable-header"
                           >
-                            {displayLabel}
+                            {displayLabel}{" "}
                             {sortState["createdAt"] === "ASC" ? "▲" : "▼"}
                           </th>
-
                           <th>Status</th>
                           <th>Actions</th>
                         </tr>
@@ -419,6 +424,7 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                               <td>{task.title}</td>
                               <td>{task.estimatedHours}</td>
                               <td>{formatDate(task.dueDate)}</td>
+                              {/* <td>{task?.createdBy?.name}</td> */}
                               <td>
                                 {selectedCard === "created"
                                   ? task.assignedTo
@@ -480,15 +486,15 @@ const Dashboard: FC<DashboardProps> = ({ isSidebarClosed }) => {
                     previousLabel={"Previous"}
                     nextLabel={"Next"}
                     breakLabel={"..."}
-                    pageCount={totalPages} // Number of total pages
+                    pageCount={count}
                     marginPagesDisplayed={2}
-                    pageRangeDisplayed={3}
+                    pageRangeDisplayed={count}
                     onPageChange={handlePageClick}
                     containerClassName={"pagination"}
                     activeClassName={"active"}
                     pageLinkClassName={"page-link"}
-                    previousLinkClassName={"prev-link"}
-                    nextLinkClassName={"next-link"}
+                    previousLinkClassName={handlePageClick}
+                    nextLinkClassName={handlePageClick}
                     breakLinkClassName={"break-link"}
                   />
                 </div>
