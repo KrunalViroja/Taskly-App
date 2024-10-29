@@ -1,3 +1,5 @@
+
+
 export interface Task {
   id: string;
   title: string;
@@ -39,10 +41,10 @@ export interface TaskContextType {
   completedTasks: Task[];
   loading: boolean;
   error: string | null;
-  fetchCreatedTasks: () => Promise<void>;
-  fetchTodayTasks: () => Promise<void>;
-  fetchOverdueTasks: () => Promise<void>;
-  fetchCompletedTasks: () => Promise<void>;
+  fetchCreatedTasks: (newpage: number, combinedSort: string) => Promise<void>;
+  fetchTodayTasks: (newpage: number, combinedSort: string) => Promise<void>;
+  fetchOverdueTasks: (newpage: number, combinedSort: string) => Promise<void>;
+  fetchCompletedTasks: (newpage: number, combinedSort: string) => Promise<void>;
   duplicateTask: (taskId: string) => Promise<void>;
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   updateTaskStatus: (
@@ -57,11 +59,7 @@ export interface TaskContextType {
   totalTodayTask: number;
   currentPage: number;
   totalPages: number;
-  // handlePageChange: (page: number) => void;
   handleSort: (columnvalue: string) => void;
-  fetchTasks: () => void;
-  // setPageNumber: (pageNumber: number) => void;
-  // pageCount: number;
+  fetchTasks: (newpage: number, combinedSort: string) => void;
   handlePageClick: any;
-  // combinedSort:string
 }
